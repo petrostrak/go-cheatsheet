@@ -42,7 +42,7 @@ func main() {
 }
 ```
 
-#### CRUD operation with MongoDB
+#### CRUD operations with MongoDB and gRPC services
 Create:
 ```go
 func (s *Server) CreateBlog(ctx context.Context, in *pb.Blog) (*pb.BlogId, error) {
