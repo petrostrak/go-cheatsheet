@@ -1,15 +1,61 @@
 package main
 
 import (
+	"log"
 	"net/http"
 )
 
-func saveInCache(w http.ResponseWriter, r *http.Request) {
-	var userInput struct {
-		Name  string `json:"name"`
-		Value string `json:"value"`
-		CSRF  string `json:"csrf_token"`
+func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
+	log.Println("saveInCache() invoked!")
+
+	userInput := Person{
+		kind: "Human",
+		metadata: Metadata{
+			name: "Petros Trakadas",
+			from: "🇬🇷",
+			programmingLanguages: []string{
+				"Golang",
+				"Java",
+				"Javascript",
+				"Rust",
+			},
+			tools: []string{
+				"Debian Linux",
+				"Docker",
+				"!# Bash",
+				"MySQL",
+				"Postgresql",
+				"Redis",
+			},
+			locations: Locations{
+				github:   "https://github.com/petrostrak",
+				linkedin: "https://www.linkedin.com/in/petrostrak/",
+				personal: "https://petrostrak.netlify.app/",
+			},
+			foreignLanguages: []string{
+				"🇬🇷",
+				"🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+				"🇩🇪",
+			},
+		},
+		favorites: Favorites{
+			food:           "🍣",
+			drink:          "🍺",
+			programingLang: "Golang",
+		},
+		thinkingAbout: []string{
+			"gRPC",
+			"Concurrency in Go",
+			"русский язык",
+		},
+		hobbies: []string{
+			"Coding",
+			"Foreign Languages",
+			"🎮",
+		},
 	}
+
+	log.Println(userInput)
 
 	err := ReadJSON(w, r, &userInput)
 	if err != nil {
@@ -17,7 +63,7 @@ func saveInCache(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Set(userInput.Name, userInput.Value)
+	err = s.cache.Set(userInput.metadata.name, userInput.metadata.locations.github)
 	if err != nil {
 		Error500(w, r)
 		return
@@ -32,9 +78,10 @@ func saveInCache(w http.ResponseWriter, r *http.Request) {
 	resp.Message = "Saved in cache"
 
 	_ = WriteJson(w, http.StatusCreated, resp)
+	log.Println(resp)
 }
 
-func GetFromCache(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getFromCache(w http.ResponseWriter, r *http.Request) {
 	var msg string
 	var inCache = true
 
@@ -49,7 +96,7 @@ func GetFromCache(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fromCache, err := Get(userInput.Name)
+	fromCache, err := s.cache.Get(userInput.Name)
 	if err != nil {
 		msg = "Not found in cache!"
 		inCache = false
@@ -73,7 +120,7 @@ func GetFromCache(w http.ResponseWriter, r *http.Request) {
 	_ = WriteJson(w, http.StatusCreated, resp)
 }
 
-func DeleteFromCache(w http.ResponseWriter, r *http.Request) {
+func (s *Server) deleteFromCache(w http.ResponseWriter, r *http.Request) {
 	var userInput struct {
 		Name string `json:"name"`
 		CSRF string `json:"csrf_token"`
@@ -85,7 +132,7 @@ func DeleteFromCache(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Forget(userInput.Name)
+	err = s.cache.Forget(userInput.Name)
 	if err != nil {
 		Error500(w, r)
 		return
@@ -102,7 +149,8 @@ func DeleteFromCache(w http.ResponseWriter, r *http.Request) {
 	_ = WriteJson(w, http.StatusCreated, resp)
 }
 
-func EmptyCache(w http.ResponseWriter, r *http.Request) {
+func (s *Server) emptyCache(w http.ResponseWriter, r *http.Request) {
+	var userInput struct{}
 
 	err := ReadJSON(w, r, &userInput)
 	if err != nil {
@@ -110,7 +158,7 @@ func EmptyCache(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Empty()
+	err = s.cache.Empty()
 	if err != nil {
 		Error500(w, r)
 		return

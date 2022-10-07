@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"time"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -23,6 +24,32 @@ type RedisCache struct {
 }
 
 type Entry map[string]interface{}
+
+func CreateClientRedisCache() *RedisCache {
+	cacheClient := RedisCache{
+		Conn:   CreateRedisPool(),
+		Prefix: REDIS_PREFIX,
+	}
+	return &cacheClient
+}
+
+func CreateRedisPool() *redis.Pool {
+	return &redis.Pool{
+		MaxIdle:     50,
+		MaxActive:   10000,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial("tcp",
+				REDIS_HOST,
+				redis.DialPassword(REDIS_PASSWORD))
+		},
+
+		TestOnBorrow: func(conn redis.Conn, t time.Time) error {
+			_, err := conn.Do("PING")
+			return err
+		},
+	}
+}
 
 func encode(item Entry) ([]byte, error) {
 	b := bytes.Buffer{}
