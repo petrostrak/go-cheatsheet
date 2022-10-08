@@ -49,6 +49,8 @@ func (s *Server) readAllPersons(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) updatePerson(w http.ResponseWriter, r *http.Request) {
+	log.Println("updatePerson() invoked!")
+
 	arg := db.UpdatePersonParams{
 		ID:                     0,
 		Kind:                   "Alien",
