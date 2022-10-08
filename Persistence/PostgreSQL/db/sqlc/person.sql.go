@@ -40,8 +40,8 @@ type CreatePersonParams struct {
 	FavFood                string   `json:"fav_food"`
 	FavDrink               string   `json:"fav_drink"`
 	FavProgrammingLanguage string   `json:"fav_programming_language"`
-	ThinkingAbout          string   `json:"thinking_about"`
-	Hobbies                string   `json:"hobbies"`
+	ThinkingAbout          []string `json:"thinking_about"`
+	Hobbies                []string `json:"hobbies"`
 }
 
 func (q *Queries) CreatePerson(ctx context.Context, arg CreatePersonParams) (Person, error) {
@@ -59,8 +59,8 @@ func (q *Queries) CreatePerson(ctx context.Context, arg CreatePersonParams) (Per
 		arg.FavFood,
 		arg.FavDrink,
 		arg.FavProgrammingLanguage,
-		arg.ThinkingAbout,
-		arg.Hobbies,
+		pq.Array(arg.ThinkingAbout),
+		pq.Array(arg.Hobbies),
 	)
 	var i Person
 	err := row.Scan(
@@ -77,8 +77,8 @@ func (q *Queries) CreatePerson(ctx context.Context, arg CreatePersonParams) (Per
 		&i.FavFood,
 		&i.FavDrink,
 		&i.FavProgrammingLanguage,
-		&i.ThinkingAbout,
-		&i.Hobbies,
+		pq.Array(&i.ThinkingAbout),
+		pq.Array(&i.Hobbies),
 	)
 	return i, err
 }
@@ -145,8 +145,8 @@ type UpdatePersonParams struct {
 	FavFood                string   `json:"fav_food"`
 	FavDrink               string   `json:"fav_drink"`
 	FavProgrammingLanguage string   `json:"fav_programming_language"`
-	ThinkingAbout          string   `json:"thinking_about"`
-	Hobbies                string   `json:"hobbies"`
+	ThinkingAbout          []string `json:"thinking_about"`
+	Hobbies                []string `json:"hobbies"`
 }
 
 func (q *Queries) UpdatePerson(ctx context.Context, arg UpdatePersonParams) (Person, error) {
@@ -164,8 +164,8 @@ func (q *Queries) UpdatePerson(ctx context.Context, arg UpdatePersonParams) (Per
 		arg.FavFood,
 		arg.FavDrink,
 		arg.FavProgrammingLanguage,
-		arg.ThinkingAbout,
-		arg.Hobbies,
+		pq.Array(arg.ThinkingAbout),
+		pq.Array(arg.Hobbies),
 	)
 	var i Person
 	err := row.Scan(
@@ -182,8 +182,8 @@ func (q *Queries) UpdatePerson(ctx context.Context, arg UpdatePersonParams) (Per
 		&i.FavFood,
 		&i.FavDrink,
 		&i.FavProgrammingLanguage,
-		&i.ThinkingAbout,
-		&i.Hobbies,
+		pq.Array(&i.ThinkingAbout),
+		pq.Array(&i.Hobbies),
 	)
 	return i, err
 }

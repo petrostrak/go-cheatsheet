@@ -12,6 +12,6 @@ CREATE TABLE "person" (
     "fav_food" varchar NOT NULL,
     "fav_drink" varchar NOT NULL,
     "fav_programming_language" varchar Not NULL,
-    "thinking_about" varchar NOT NULL,
-    "hobbies" varchar NOT NULL
+    "thinking_about" varchar[] NOT NULL,
+    "hobbies" varchar[] NOT NULL
 );

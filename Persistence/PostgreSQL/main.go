@@ -34,12 +34,12 @@ func (s *Server) setupRouter() {
 }
 
 func main() {
-	dbPool, err := sql.Open(DB_DRIVER, DB_SOURCE)
+	conn, err := sql.Open(DB_DRIVER, DB_SOURCE)
 	if err != nil {
 		log.Fatal("cannot connect to db: ", err)
 	}
 
-	store := db.New(dbPool)
+	store := db.New(conn)
 	server := &Server{
 		store: store,
 	}

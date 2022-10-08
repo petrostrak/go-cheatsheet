@@ -14,6 +14,6 @@ type Person struct {
 	FavFood                string   `json:"fav_food"`
 	FavDrink               string   `json:"fav_drink"`
 	FavProgrammingLanguage string   `json:"fav_programming_language"`
-	ThinkingAbout          string   `json:"thinking_about"`
-	Hobbies                string   `json:"hobbies"`
+	ThinkingAbout          []string `json:"thinking_about"`
+	Hobbies                []string `json:"hobbies"`
 }
