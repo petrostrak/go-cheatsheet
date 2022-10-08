@@ -17,10 +17,14 @@ INSERT INTO person (
     hobbies
 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *;
 
--- name: ReadPerson :many
+-- name: GetPersonById :one
 SELECT persons_name FROM "person"
-WHERE person.id = $1
-ORDER BY "person".persons_name;
+WHERE person.id = $1 LIMIT 1;
+
+-- name: ListPersons :many
+SELECT * FROM "person"
+ORDER BY id
+LIMIT $1;
 
 -- name: UpdatePerson :one
 UPDATE "person" 

@@ -23,7 +23,7 @@ func (s *Server) setupRouter() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/create", s.createPerson)
-	mux.HandleFunc("/read", s.readPersons)
+	mux.HandleFunc("/read-all", s.readAllPersons)
 	mux.HandleFunc("/update", s.updatePerson)
 	mux.HandleFunc("/delete", s.deletePerson)
 

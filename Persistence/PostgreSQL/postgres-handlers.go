@@ -28,7 +28,6 @@ func (s *Server) createPerson(w http.ResponseWriter, r *http.Request) {
 
 	person, err := s.store.CreatePerson(r.Context(), arg)
 	if err != nil {
-		log.Println(err)
 		Error500(w, r)
 		return
 	}
@@ -37,7 +36,17 @@ func (s *Server) createPerson(w http.ResponseWriter, r *http.Request) {
 	_ = WriteJson(w, http.StatusCreated, person)
 }
 
-func (s *Server) readPersons(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) readAllPersons(w http.ResponseWriter, r *http.Request) {
+	log.Println("readAllPersons() invoked!")
+
+	persons, err := s.store.ListPersons(r.Context(), 5)
+	if err != nil {
+		Error500(w, r)
+		return
+	}
+
+	_ = WriteJson(w, http.StatusCreated, persons)
+}
 
 func (s *Server) updatePerson(w http.ResponseWriter, r *http.Request) {}
 
