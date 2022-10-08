@@ -48,7 +48,34 @@ func (s *Server) readAllPersons(w http.ResponseWriter, r *http.Request) {
 	_ = WriteJson(w, http.StatusCreated, persons)
 }
 
-func (s *Server) updatePerson(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) updatePerson(w http.ResponseWriter, r *http.Request) {
+	arg := db.UpdatePersonParams{
+		ID:                     0,
+		Kind:                   "Alien",
+		PersonsName:            "Petros Trak",
+		Origins:                "Athens, Greece",
+		ProgrammingLanguages:   []string{"Golang", "Java", "Javascript", "Rust"},
+		Tools:                  []string{"Debian Linux", "Docker", "!# Bash", "MySQL", "Postgresql", "Redis"},
+		Github:                 "https://github.com/petrostrak",
+		Linkedin:               "https://www.linkedin.com/in/petrostrak/",
+		Personal:               "https://petrostrak.netlify.app/",
+		ForeignLanguages:       []string{"Greek", "English", "German"},
+		FavFood:                "Ramen",
+		FavDrink:               "Gin",
+		FavProgrammingLanguage: "Golang",
+		ThinkingAbout:          []string{"gRPC", "Concurrency in Go", "русский язык"},
+		Hobbies:                []string{"Coding", "Foreign Languages", "Video Games"},
+	}
+
+	person, err := s.store.UpdatePerson(r.Context(), arg)
+
+	if err != nil {
+		Error500(w, r)
+		return
+	}
+
+	_ = WriteJson(w, http.StatusCreated, person)
+}
 
 func (s *Server) deletePerson(w http.ResponseWriter, r *http.Request) {
 	log.Println("deletePerson() invoked!")
