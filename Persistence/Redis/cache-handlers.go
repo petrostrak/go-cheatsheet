@@ -5,10 +5,8 @@ import (
 	"net/http"
 )
 
-func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
-	log.Println("saveInCache() invoked!")
-
-	userInput := Person{
+var (
+	userInput = Person{
 		kind: "Human",
 		metadata: Metadata{
 			Name: "Petros Trakadas",
@@ -54,6 +52,10 @@ func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
 			"Video Games",
 		},
 	}
+)
+
+func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
+	log.Println("saveInCache() invoked!")
 
 	err := s.cache.Set(userInput.metadata.Name, userInput.metadata.Locations.Github)
 	if err != nil {
@@ -74,21 +76,11 @@ func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getFromCache(w http.ResponseWriter, r *http.Request) {
+	log.Println("getFromCache() invoked!")
 	var msg string
 	var inCache = true
 
-	var userInput struct {
-		Name string `json:"name"`
-		CSRF string `json:"csrf_token"`
-	}
-
-	err := ReadJSON(w, r, &userInput)
-	if err != nil {
-		Error500(w, r)
-		return
-	}
-
-	fromCache, err := s.cache.Get(userInput.Name)
+	fromCache, err := s.cache.Get(userInput.metadata.Name)
 	if err != nil {
 		msg = "Not found in cache!"
 		inCache = false
