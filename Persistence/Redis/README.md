@@ -36,29 +36,49 @@ func createRedisPool() *redis.Pool {
 	}
 }
 
-var (myRedisCache  *cache.RedisCache)
+var (
+	SERVER_ADDRESS = "0.0.0.0:8001"
+	REDIS_HOST     = "localhost:6379"
+	REDIS_PASSWORD = ""
+	REDIS_PREFIX   = "cheatsheet"
+)
+
+type Server struct {
+	cache RedisCache
+}
+
+func (s *Server) setupRouter() {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/save-in-cache", s.saveInCache)
+	mux.HandleFunc("/get-from-cache", s.getFromCache)
+	mux.HandleFunc("/delete-from-cache", s.deleteFromCache)
+	mux.HandleFunc("/empty-cache", s.emptyCache)
+
+	err := http.ListenAndServe(SERVER_ADDRESS, mux)
+	if err != nil {
+		panic(err)
+	}
+}
 
 func main() {
-    ...
-    myRedisCache = createClientRedisCache()
+
+	server := &Server{
+		cache: RedisCache{
+			Conn:   CreateClientRedisCache().Conn,
+			Prefix: REDIS_PREFIX,
+		},
+	}
+
+	server.setupRouter()
 }
 ```
 Save in redis cache:
 ```go
-func saveInCache(w http.ResponseWriter, r *http.Request) {
-	var userInput struct {
-		Name  string `json:"name"`
-		Value string `json:"value"`
-		CSRF  string `json:"csrf_token"`
-	}
+func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
+	log.Println("saveInCache() invoked!")
 
-	err := ReadJSON(w, r, &userInput)
-	if err != nil {
-		Error500(w, r)
-		return
-	}
-
-	err = Set(userInput.Name, userInput.Value)
+	err := s.cache.Set(userInput.Metadata.Name, userInput.Metadata.Locations.Github)
 	if err != nil {
 		Error500(w, r)
 		return
@@ -73,26 +93,18 @@ func saveInCache(w http.ResponseWriter, r *http.Request) {
 	resp.Message = "Saved in cache"
 
 	_ = WriteJson(w, http.StatusCreated, resp)
+	log.Println(resp)
 }
 ```
 Get from redis cache:
 ```go
-func GetFromCache(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getFromCache(w http.ResponseWriter, r *http.Request) {
+	log.Println("getFromCache() invoked!")
+
 	var msg string
 	var inCache = true
 
-	var userInput struct {
-		Name string `json:"name"`
-		CSRF string `json:"csrf_token"`
-	}
-
-	err := ReadJSON(w, r, &userInput)
-	if err != nil {
-		Error500(w, r)
-		return
-	}
-
-	fromCache, err := Get(userInput.Name)
+	fromCache, err := s.cache.Get(userInput.Metadata.Name)
 	if err != nil {
 		msg = "Not found in cache!"
 		inCache = false
@@ -118,19 +130,10 @@ func GetFromCache(w http.ResponseWriter, r *http.Request) {
 ```
 Delete from redis cache:
 ```go
-func DeleteFromCache(w http.ResponseWriter, r *http.Request) {
-	var userInput struct {
-		Name string `json:"name"`
-		CSRF string `json:"csrf_token"`
-	}
+func (s *Server) deleteFromCache(w http.ResponseWriter, r *http.Request) {
+	log.Println("deleteFromCache() invoked!")
 
-	err := ReadJSON(w, r, &userInput)
-	if err != nil {
-		Error500(w, r)
-		return
-	}
-
-	err = Forget(userInput.Name)
+	err := s.cache.Forget(userInput.Metadata.Name)
 	if err != nil {
 		Error500(w, r)
 		return
@@ -149,15 +152,10 @@ func DeleteFromCache(w http.ResponseWriter, r *http.Request) {
 ```
 Empty redis cache:
 ```go
-func EmptyCache(w http.ResponseWriter, r *http.Request) {
+func (s *Server) emptyCache(w http.ResponseWriter, r *http.Request) {
+	log.Println("emptyCache() invoked!")
 
-	err := ReadJSON(w, r, &userInput)
-	if err != nil {
-		Error500(w, r)
-		return
-	}
-
-	err = Empty()
+	err := s.cache.Empty()
 	if err != nil {
 		Error500(w, r)
 		return
