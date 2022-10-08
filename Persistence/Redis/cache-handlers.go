@@ -77,6 +77,7 @@ func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) getFromCache(w http.ResponseWriter, r *http.Request) {
 	log.Println("getFromCache() invoked!")
+
 	var msg string
 	var inCache = true
 
@@ -105,6 +106,7 @@ func (s *Server) getFromCache(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteFromCache(w http.ResponseWriter, r *http.Request) {
+	log.Println("deleteFromCache() invoked!")
 
 	err := s.cache.Forget(userInput.metadata.Name)
 	if err != nil {
@@ -124,15 +126,9 @@ func (s *Server) deleteFromCache(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) emptyCache(w http.ResponseWriter, r *http.Request) {
-	var userInput struct{}
+	log.Println("emptyCache() invoked!")
 
-	err := ReadJSON(w, r, &userInput)
-	if err != nil {
-		Error500(w, r)
-		return
-	}
-
-	err = s.cache.Empty()
+	err := s.cache.Empty()
 	if err != nil {
 		Error500(w, r)
 		return
