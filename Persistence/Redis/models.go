@@ -22,11 +22,11 @@ type Favorites struct {
 }
 
 type Person struct {
-	kind          string    `json:"kind"`
-	metadata      Metadata  `json:"metadata"`
-	favorites     Favorites `json:"favorites"`
-	thinkingAbout []string  `json:"thinking_about"`
-	hobbies       []string  `json:"hobbies"`
+	Kind          string    `json:"kind"`
+	Metadata      Metadata  `json:"metadata"`
+	Favorites     Favorites `json:"favorites"`
+	ThinkingAbout []string  `json:"thinking_about"`
+	Hobbies       []string  `json:"hobbies"`
 }
 
 // petrosTrak := &AboutMe{

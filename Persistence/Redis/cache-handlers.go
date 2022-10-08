@@ -7,8 +7,8 @@ import (
 
 var (
 	userInput = Person{
-		kind: "Human",
-		metadata: Metadata{
+		Kind: "Human",
+		Metadata: Metadata{
 			Name: "Petros Trakadas",
 			From: "Greece",
 			ProgrammingLanguages: []string{
@@ -36,17 +36,17 @@ var (
 				"German",
 			},
 		},
-		favorites: Favorites{
+		Favorites: Favorites{
 			Food:           "Ramen",
 			Drink:          "Gin",
 			ProgramingLang: "Golang",
 		},
-		thinkingAbout: []string{
+		ThinkingAbout: []string{
 			"gRPC",
 			"Concurrency in Go",
 			"русский язык",
 		},
-		hobbies: []string{
+		Hobbies: []string{
 			"Coding",
 			"Foreign Languages",
 			"Video Games",
@@ -57,7 +57,7 @@ var (
 func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
 	log.Println("saveInCache() invoked!")
 
-	err := s.cache.Set(userInput.metadata.Name, userInput.metadata.Locations.Github)
+	err := s.cache.Set(userInput.Metadata.Name, userInput.Metadata.Locations.Github)
 	if err != nil {
 		Error500(w, r)
 		return
@@ -81,7 +81,7 @@ func (s *Server) getFromCache(w http.ResponseWriter, r *http.Request) {
 	var msg string
 	var inCache = true
 
-	fromCache, err := s.cache.Get(userInput.metadata.Name)
+	fromCache, err := s.cache.Get(userInput.Metadata.Name)
 	if err != nil {
 		msg = "Not found in cache!"
 		inCache = false
@@ -108,7 +108,7 @@ func (s *Server) getFromCache(w http.ResponseWriter, r *http.Request) {
 func (s *Server) deleteFromCache(w http.ResponseWriter, r *http.Request) {
 	log.Println("deleteFromCache() invoked!")
 
-	err := s.cache.Forget(userInput.metadata.Name)
+	err := s.cache.Forget(userInput.Metadata.Name)
 	if err != nil {
 		Error500(w, r)
 		return
