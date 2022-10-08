@@ -1,32 +1,32 @@
 package main
 
 type Locations struct {
-	linkedin string
-	github   string
-	personal string
+	Linkedin string `json:"linkedin"`
+	Github   string `json:"github"`
+	Personal string `json:"personal_website"`
 }
 
 type Metadata struct {
-	name                 string
-	from                 string
-	programmingLanguages []string
-	tools                []string
-	locations            Locations
-	foreignLanguages     []string
+	Name                 string    `json:"name"`
+	From                 string    `json:"from"`
+	ProgrammingLanguages []string  `json:"programming_languages"`
+	Tools                []string  `json:"tools"`
+	Locations            Locations `json:"locations"`
+	ForeignLanguages     []string  `json:"foreign_languages"`
 }
 
 type Favorites struct {
-	food           string
-	drink          string
-	programingLang string
+	Food           string `json:"fav_food"`
+	Drink          string `json:"fav_drink"`
+	ProgramingLang string `json:"fav_programming_language"`
 }
 
 type Person struct {
-	kind          string
-	metadata      Metadata
-	favorites     Favorites
-	thinkingAbout []string
-	hobbies       []string
+	kind          string    `json:"kind"`
+	metadata      Metadata  `json:"metadata"`
+	favorites     Favorites `json:"favorites"`
+	thinkingAbout []string  `json:"thinking_about"`
+	hobbies       []string  `json:"hobbies"`
 }
 
 // petrosTrak := &AboutMe{

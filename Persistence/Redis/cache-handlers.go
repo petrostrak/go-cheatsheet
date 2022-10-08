@@ -11,15 +11,15 @@ func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
 	userInput := Person{
 		kind: "Human",
 		metadata: Metadata{
-			name: "Petros Trakadas",
-			from: "🇬🇷",
-			programmingLanguages: []string{
+			Name: "Petros Trakadas",
+			From: "Greece",
+			ProgrammingLanguages: []string{
 				"Golang",
 				"Java",
 				"Javascript",
 				"Rust",
 			},
-			tools: []string{
+			Tools: []string{
 				"Debian Linux",
 				"Docker",
 				"!# Bash",
@@ -27,21 +27,21 @@ func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
 				"Postgresql",
 				"Redis",
 			},
-			locations: Locations{
-				github:   "https://github.com/petrostrak",
-				linkedin: "https://www.linkedin.com/in/petrostrak/",
-				personal: "https://petrostrak.netlify.app/",
+			Locations: Locations{
+				Github:   "https://github.com/petrostrak",
+				Linkedin: "https://www.linkedin.com/in/petrostrak/",
+				Personal: "https://petrostrak.netlify.app/",
 			},
-			foreignLanguages: []string{
-				"🇬🇷",
-				"🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-				"🇩🇪",
+			ForeignLanguages: []string{
+				"Greek",
+				"English",
+				"German",
 			},
 		},
 		favorites: Favorites{
-			food:           "🍣",
-			drink:          "🍺",
-			programingLang: "Golang",
+			Food:           "Ramen",
+			Drink:          "Gin",
+			ProgramingLang: "Golang",
 		},
 		thinkingAbout: []string{
 			"gRPC",
@@ -51,19 +51,11 @@ func (s *Server) saveInCache(w http.ResponseWriter, r *http.Request) {
 		hobbies: []string{
 			"Coding",
 			"Foreign Languages",
-			"🎮",
+			"Video Games",
 		},
 	}
 
-	log.Println(userInput)
-
-	err := ReadJSON(w, r, &userInput)
-	if err != nil {
-		Error500(w, r)
-		return
-	}
-
-	err = s.cache.Set(userInput.metadata.name, userInput.metadata.locations.github)
+	err := s.cache.Set(userInput.metadata.Name, userInput.metadata.Locations.Github)
 	if err != nil {
 		Error500(w, r)
 		return

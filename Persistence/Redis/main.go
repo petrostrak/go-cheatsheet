@@ -2,8 +2,6 @@ package main
 
 import (
 	"net/http"
-
-	"github.com/gomodule/redigo/redis"
 )
 
 var (
@@ -11,8 +9,6 @@ var (
 	REDIS_HOST     = "localhost:6379"
 	REDIS_PASSWORD = ""
 	REDIS_PREFIX   = "cheatsheet"
-	myRedisCache   *RedisCache
-	redisPool      *redis.Pool
 )
 
 type Server struct {
@@ -34,12 +30,10 @@ func (s *Server) setupRouter() {
 }
 
 func main() {
-	myRedisCache = CreateClientRedisCache()
-	redisPool = myRedisCache.Conn
 
 	server := &Server{
 		cache: RedisCache{
-			Conn:   redisPool,
+			Conn:   CreateClientRedisCache().Conn,
 			Prefix: REDIS_PREFIX,
 		},
 	}
