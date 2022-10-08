@@ -105,18 +105,8 @@ func (s *Server) getFromCache(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteFromCache(w http.ResponseWriter, r *http.Request) {
-	var userInput struct {
-		Name string `json:"name"`
-		CSRF string `json:"csrf_token"`
-	}
 
-	err := ReadJSON(w, r, &userInput)
-	if err != nil {
-		Error500(w, r)
-		return
-	}
-
-	err = s.cache.Forget(userInput.Name)
+	err := s.cache.Forget(userInput.metadata.Name)
 	if err != nil {
 		Error500(w, r)
 		return
