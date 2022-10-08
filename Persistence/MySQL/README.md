@@ -4,38 +4,45 @@ In this example, we persist data in MySQL.
 
 To connect to MySQL:
 ```go
-func main() {
-    ...
-    db, err := openDB(*dsn)
-	if err != nil {
-		errorLog.Fatal(err)
-	}
+var (
+	DB_DRIVER      = "mysql"
+	DB_SOURCE      = "mariadb:password@/cheatsheet"
+	SERVER_ADDRESS = "0.0.0.0:8001"
+)
 
-	// We also defer a call to db.Close() so that the connection pool is closed
-	// before the main() returns.
-	defer db.Close()
+type Server struct {
+	store db.Querier
 }
 
-// The openDB() function wraps sql.Open() and returns an sql.DB connection pool
-// for a given DSN
-func openDB(dsn string) (*sql.DB, error) {
+func (s *Server) setupRouter() {
+	mux := http.NewServeMux()
 
-	// The sql.Open() function doesn’t actually create any connections, all
-	// it does is initialize the pool for future use. Actual connections to the
-	// database are established lazily.
-	db, err := sql.Open("mysql", dsn)
+	mux.HandleFunc("/create", s.createPerson)
+	mux.HandleFunc("/read-all", s.readAllPersons)
+	mux.HandleFunc("/update", s.updatePerson)
+	mux.HandleFunc("/delete", s.deletePerson)
+
+	err := http.ListenAndServe(SERVER_ADDRESS, mux)
 	if err != nil {
-		return nil, err
+		panic(err)
+	}
+}
+
+func main() {
+	conn, err := sql.Open(DB_DRIVER, DB_SOURCE)
+	if err != nil {
+		log.Fatal("cannot connect to db: ", err)
 	}
 
-	if err = db.Ping(); err != nil {
-		return nil, err
+	store := db.New(conn)
+	server := &Server{
+		store: store,
 	}
 
-	return db, nil
+	server.setupRouter()
 }
 ```
-Insert to MySQL:
+Insert an entity to MySQL:
 ```go
 // DB.Query() is used for SELECT queries which return multiple rows.
 // DB.QueryRow() is used for SELECT queries which return a single row.
@@ -46,119 +53,95 @@ type SnippetModel struct {
 	DB *sql.DB
 }
 
-// This will insert a new snippet into the database.
-func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
+func (s *Server) createPerson(w http.ResponseWriter, r *http.Request) {
+	log.Println("createPerson() invoked!")
 
-	stmt := `INSERT INTO snippets (title, content, created, expires)
-			 VALUES(?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))`
-
-	// Use the Exec() method on the embedded connection pool to execute the statement.
-	// This method returns a sql.Result object, which contains some basic information
-	// about what happend when the statement was executed.
-	rs, err := m.DB.Exec(stmt, title, content, expires)
-	if err != nil {
-		return 0, err
+	arg := db.CreatePersonParams{
+		Kind:                   "Human",
+		PersonsName:            "Petros Trak",
+		Origins:                "Athens, Greece",
+		ProgrammingLanguages:   "Golang, Java, Javascript ,Rust",
+		Tools:                  "Debian Linux, Docker, !# Bash, MySQL, Postgresql, Redis",
+		Github:                 "https://github.com/petrostrak",
+		Linkedin:               "https://www.linkedin.com/in/petrostrak/",
+		Personal:               "https://petrostrak.netlify.app/",
+		ForeignLanguages:       "Greek, English, German",
+		FavFood:                "Ramen",
+		FavDrink:               "Gin",
+		FavProgrammingLanguage: "Golang",
+		ThinkingAbout:          "gRPC, Concurrency in Go, русский язык",
+		Hobbies:                "Coding, Foreign Languages, Video Games",
 	}
 
-	id, err := rs.LastInsertId()
+	_, err := s.store.CreatePerson(r.Context(), arg)
 	if err != nil {
-		return 0, err
+		log.Println(err)
+		Error500(w, r)
+		return
 	}
 
-	return int(id), nil
+	_ = WriteJson(w, http.StatusCreated, arg)
 }
 ```
-Get by id:
+Get all entities in MySQL:
 ```go
-// This will return a specific snippet based on its id.
-func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
+func (s *Server) readAllPersons(w http.ResponseWriter, r *http.Request) {
+	log.Println("readAllPersons() invoked!")
 
-	stmt := `SELECT id, title, content, created, expires FROM snippets
-			 WHERE expires > UTC_TIMESTAMP() AND id = ?`
-
-	// Use the QueryRow() on the connection pool to execute our sql
-	// statement. This returns a pointer to a sql.Row object which
-	// holds the result from the database.
-	row := m.DB.QueryRow(stmt, id)
-
-	// Initialize a pointer to a new zeroed Snippet struct.
-	s := &models.Snippet{}
-
-	// Use row.Scan() to copy the values from each field in sql.Rpw to the
-	// corresponding field in the Snippet struct. If the row returns no rows,
-	// then row.Scan() will return a sql.ErrNoRows error.
-	err := row.Scan(
-		&s.ID,
-		&s.Title,
-		&s.Content,
-		&s.Created,
-		&s.Expires,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, models.ErrNoRecord
-	} else if err != nil {
-		return nil, err
+	persons, err := s.store.ListPersons(r.Context())
+	if err != nil {
+		Error500(w, r)
+		return
 	}
 
-	// If everything went OK then return the snippet object.
-	return s, nil
+	_ = WriteJson(w, http.StatusCreated, persons)
 }
 ```
-Get latest:
+Update an entity in MySQL:
 ```go
-// This will return the 10 most recently created snippets.
-func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
-	// Write the SQL statement
-	stmt := `SELECT id, title, content, created, expires FROM snippets
-			 WHERE expires > UTC_TIMESTAMP() ORDER BY created DESC LIMIT 10`
+func (s *Server) updatePerson(w http.ResponseWriter, r *http.Request) {
+	log.Println("updatePerson() invoked!")
 
-	// Use the Query() on the connection pool to execute  our SQL statement.
-	// This returns a sql.Rows resultset containing the  result of our query.
-	rows, err := m.DB.Query(stmt)
+	arg := db.UpdatePersonParams{
+		ID:                     1,
+		Kind:                   "Alien",
+		PersonsName:            "Petros Trak",
+		Origins:                "Athens, Greece",
+		ProgrammingLanguages:   "Golang, Java, Javascript ,Rust",
+		Tools:                  "Debian Linux, Docker, !# Bash, MySQL, Postgresql, Redis",
+		Github:                 "https://github.com/petrostrak",
+		Linkedin:               "https://www.linkedin.com/in/petrostrak/",
+		Personal:               "https://petrostrak.netlify.app/",
+		ForeignLanguages:       "Greek, English, German",
+		FavFood:                "Ramen",
+		FavDrink:               "Gin",
+		FavProgrammingLanguage: "Golang",
+		ThinkingAbout:          "gRPC, Concurrency in Go, русский язык",
+		Hobbies:                "Coding, Foreign Languages, Video Games",
+	}
+
+	_, err := s.store.UpdatePerson(r.Context(), arg)
+
 	if err != nil {
-		return nil, err
+		Error500(w, r)
+		return
 	}
 
-	// We defer rows.Close() to ensure the sql.Rows resultset is always properly
-	// closed before the Latest() returns. This defer statement should come after
-	// the error check, otherwise if Query() returs an error, you'll get a panic
-	// trying to close a nil resultset.
-	defer rows.Close()
+	_ = WriteJson(w, http.StatusCreated, arg)
+}
+```
+Delete an entity in MySQL:
+```go
+func (s *Server) deletePerson(w http.ResponseWriter, r *http.Request) {
+	log.Println("deletePerson() invoked!")
 
-	// Initialize an empty slice to hold the resultset.
-	snippets := []*models.Snippet{}
-
-	//Use rows.Next() to iterate through the rows in the resultset. This prepares
-	// the first (and then each subsequent) row to be acted on by the rows.Scan()
-	// method. If iteration over all the rows completes then the resultset automatically
-	// closes itself and frees-up the underlying database connection.
-	for rows.Next() {
-		// Create a pointer to a new zeroed snippet struct
-		s := &models.Snippet{}
-
-		if err := rows.Scan(
-			&s.ID,
-			&s.Title,
-			&s.Content,
-			&s.Created,
-			&s.Expires,
-		); err != nil {
-			return nil, err
-		}
-
-		// Append it to the slice of snippets.
-		snippets = append(snippets, s)
+	var id int64 = 1
+	err := s.store.DeletePersonById(r.Context(), id)
+	if err != nil {
+		Error500(w, r)
+		return
 	}
 
-	// When the rows.Next() loop has finished we call rows.Err() to retrieve any error
-	// that was encountered during the iteration. It's important to call this - don't
-	// assume that a successful iteration was completed over the whole resultset.
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	// If everything went OK then return the Snippets slice.
-	return snippets, nil
+	_ = WriteJson(w, http.StatusCreated, fmt.Sprintf("Deleted person with id of %d!", id))
 }
 ```
