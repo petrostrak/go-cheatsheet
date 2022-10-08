@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	db "postgres/db/sqlc"
@@ -32,7 +33,6 @@ func (s *Server) createPerson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(person)
 	_ = WriteJson(w, http.StatusCreated, person)
 }
 
@@ -50,4 +50,15 @@ func (s *Server) readAllPersons(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) updatePerson(w http.ResponseWriter, r *http.Request) {}
 
-func (s *Server) deletePerson(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) deletePerson(w http.ResponseWriter, r *http.Request) {
+	log.Println("deletePerson() invoked!")
+
+	var id int64 = 0
+	err := s.store.DeletePersonById(r.Context(), id)
+	if err != nil {
+		Error500(w, r)
+		return
+	}
+
+	_ = WriteJson(w, http.StatusCreated, fmt.Sprintf("Deleted person with id of %d!", id))
+}
