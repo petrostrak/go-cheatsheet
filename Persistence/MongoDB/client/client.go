@@ -101,3 +101,14 @@ func listPerson(c pb.PersonServiceClient) {
 		log.Println(res)
 	}
 }
+
+func deletePerson(c pb.PersonServiceClient, id string) {
+	log.Println("deleteBlog() invoked!")
+
+	_, err := c.DeletePerson(context.Background(), &pb.PersonId{Id: id})
+	if err != nil {
+		log.Printf("Error while deleting: %v\n", err)
+	}
+
+	log.Printf("Person with id of %s deleted!\n", id)
+}

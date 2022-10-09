@@ -25,4 +25,5 @@ func main() {
 	readPerson(c, id)
 	updatePerson(c, id)
 	listPerson(c)
+	deletePerson(c, id)
 }
