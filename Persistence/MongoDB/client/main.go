@@ -23,4 +23,5 @@ func main() {
 
 	id := createPerson(c)
 	readPerson(c, id)
+	updatePerson(c, id)
 }

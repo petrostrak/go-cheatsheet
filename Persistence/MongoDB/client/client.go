@@ -50,3 +50,31 @@ func readPerson(c pb.PersonServiceClient, id string) *pb.Person {
 
 	return res
 }
+
+func updatePerson(c pb.PersonServiceClient, id string) {
+	log.Println("updatePerson() invoked!")
+
+	person := &pb.Person{
+		Kind:                   "Alien",
+		PersonsName:            "Petros Trak",
+		Origins:                "Athens, Greece",
+		ProgrammingLanguages:   []string{"Golang", "Java", "Javascript", "Rust"},
+		Tools:                  []string{"Debian Linux", "Docker", "!# Bash", "MySQL", "Postgresql", "Redis"},
+		Github:                 "https://github.com/petrostrak",
+		Linkedin:               "https://www.linkedin.com/in/petrostrak/",
+		Personal:               "https://petrostrak.netlify.app/",
+		ForeignLanguages:       []string{"Greek", "English", "German"},
+		FavFood:                "Ramen",
+		FavDrink:               "Gin",
+		FavProgrammingLanguage: "Golang",
+		ThinkingAbout:          []string{"gRPC", "Concurrency in Go", "русский язык"},
+		Hobbies:                []string{"Coding", "Foreign Languages", "Video Games"},
+	}
+
+	_, err := c.UpdatePerson(context.Background(), person)
+	if err != nil {
+		log.Printf("err while updating %v\n", err)
+	}
+
+	log.Println("Person was updated!")
+}
