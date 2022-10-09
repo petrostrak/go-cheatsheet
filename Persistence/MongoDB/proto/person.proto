@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package mongodb;
+
+option go_package = "mongo-db/proto";
+
+import "google/protobuf/empty.proto";
+
+message Person {
+    string id = 1;
+    string kind = 2;
+    string persons_name = 3;
+    string origins = 4;
+    repeated string programming_languages = 5;
+    repeated string tools = 6;
+    string linkedin = 7;
+    string github = 8;
+    string personal = 9;
+    repeated string foreign_languages = 10;
+    string fav_food = 11;
+    string fav_drink = 12;
+    string fav_programming_language = 13;
+    repeated string thinking_about = 14;
+    repeated string hobbies = 15;
+}
+
+message PersonId {
+    string id = 1;
+}
+
+service PersonService {
+    rpc CreatePerson (Person) returns (PersonId);
+    rpc ReadPerson (PersonId) returns (Person);
+    rpc UpdatePerson (Person) returns (google.protobuf.Empty);
+    rpc DeletePerson (PersonId) returns (google.protobuf.Empty);
+    rpc ListPerson (google.protobuf.Empty) returns (stream Person);
+}

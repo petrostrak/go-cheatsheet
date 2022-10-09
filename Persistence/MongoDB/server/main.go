@@ -1,9 +1,10 @@
 package main
 
 import (
-	pb "blog-project/proto"
 	"log"
 	"net"
+
+	pb "mongo-db/proto"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
@@ -16,7 +17,7 @@ var (
 )
 
 type Server struct {
-	pb.BlogServiceServer
+	pb.PersonServiceServer
 }
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 	log.Printf("Listening on %s...\n", addr)
 
 	s := grpc.NewServer()
-	pb.RegisterBlogServiceServer(s, &Server{})
+	pb.RegisterPersonServiceServer(s, &Server{})
 	reflection.Register(s)
 
 	err = s.Serve(l)

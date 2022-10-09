@@ -10,8 +10,8 @@ import (
 
 var (
 	DATABASE_URI    = "mongodb://root:root@localhost:27017/"
-	DATABASE_NAME   = "blogdb"
-	COLLECTION_NAME = "blog"
+	DATABASE_NAME   = "persondb"
+	COLLECTION_NAME = "person"
 )
 
 func connectToMongoDB() *mongo.Collection {
