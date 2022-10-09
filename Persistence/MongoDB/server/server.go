@@ -6,13 +6,14 @@ import (
 	"log"
 	pb "mongo-db/proto"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (s *Server) CreatePerson(ctx context.Context, in *pb.Person) (*pb.PersonId, error) {
-	log.Printf("CreateBLog() invoked with %v\n", in)
+	log.Printf("CreatePerson() invoked with %v\n", in)
 
 	data := &pb.Person{
 		Id:                     in.Id,
@@ -49,4 +50,31 @@ func (s *Server) CreatePerson(ctx context.Context, in *pb.Person) (*pb.PersonId,
 	}
 
 	return &pb.PersonId{Id: oid.Hex()}, nil
+}
+
+func (s *Server) ReadPerson(ctx context.Context, in *pb.PersonId) (*pb.Person, error) {
+	log.Printf("ReadPerson() invoked with %v\n", in)
+
+	oid, err := primitive.ObjectIDFromHex(in.Id)
+	if err != nil {
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			fmt.Sprintf("error parse ID: %v\n", err),
+		)
+	}
+
+	data := &Person{}
+	filter := bson.M{"_id": oid}
+
+	res := collection.FindOne(ctx, filter)
+
+	err = res.Decode(data)
+	if err != nil {
+		return nil, status.Errorf(
+			codes.NotFound,
+			fmt.Sprintf("cannot find person with the ID provided: %v\n", err),
+		)
+	}
+
+	return documentToPerson(data), nil
 }
