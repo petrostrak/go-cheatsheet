@@ -159,3 +159,38 @@ func (s *Server) DeletePerson(ctx context.Context, in *pb.PersonId) (*emptypb.Em
 
 	return &emptypb.Empty{}, nil
 }
+
+func (s *Server) ListPerson(in *emptypb.Empty, stream pb.PersonService_ListPersonServer) error {
+	log.Println("ListPerson() invoked")
+
+	cur, err := collection.Find(context.Background(), primitive.D{{}}) // empty filter
+	if err != nil {
+		return status.Errorf(
+			codes.Internal,
+			fmt.Sprintf("Unknown internal error: %v\n", err),
+		)
+	}
+	defer cur.Close(context.Background())
+
+	for cur.Next(context.Background()) {
+		data := &Person{}
+		err := cur.Decode(data)
+		if err != nil {
+			return status.Errorf(
+				codes.Internal,
+				fmt.Sprintf("Error while decoding data from MongoDB: %v\n", err),
+			)
+		}
+
+		stream.Send(documentToPerson(data))
+	}
+
+	if err = cur.Err(); err != nil {
+		return status.Errorf(
+			codes.Internal,
+			fmt.Sprintf("Unknown internal error: %v\n", err),
+		)
+	}
+
+	return nil
+}
