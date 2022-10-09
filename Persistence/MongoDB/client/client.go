@@ -36,3 +36,17 @@ func createPerson(c pb.PersonServiceClient) string {
 	return res.Id
 
 }
+
+func readPerson(c pb.PersonServiceClient, id string) *pb.Person {
+	log.Println("readPerson() invoked!")
+
+	req := &pb.PersonId{Id: id}
+	res, err := c.ReadPerson(context.Background(), req)
+	if err != nil {
+		log.Printf("err while reading %v\n", err)
+	}
+
+	log.Printf("Person was read: %v\n", res)
+
+	return res
+}

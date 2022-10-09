@@ -21,5 +21,6 @@ func main() {
 
 	c := pb.NewPersonServiceClient(conn)
 
-	createPerson(c)
+	id := createPerson(c)
+	readPerson(c, id)
 }
