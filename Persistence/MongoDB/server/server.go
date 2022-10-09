@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (s *Server) CreatePerson(ctx context.Context, in *pb.Person) (*pb.PersonId, error) {
@@ -77,4 +78,55 @@ func (s *Server) ReadPerson(ctx context.Context, in *pb.PersonId) (*pb.Person, e
 	}
 
 	return documentToPerson(data), nil
+}
+
+func (s *Server) UpdatePerson(ctx context.Context, in *pb.Person) (*emptypb.Empty, error) {
+	log.Printf("UpdatePerson() invoked with %v\n", in)
+
+	oid, err := primitive.ObjectIDFromHex(in.Id)
+	if err != nil {
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			fmt.Sprintf("error parse ID: %v\n", err),
+		)
+	}
+
+	data := &pb.Person{
+		Id:                     in.Id,
+		Kind:                   in.Kind,
+		PersonsName:            in.PersonsName,
+		Origins:                in.Origins,
+		ProgrammingLanguages:   in.ProgrammingLanguages,
+		Tools:                  in.Tools,
+		Linkedin:               in.Linkedin,
+		Github:                 in.Github,
+		Personal:               in.Personal,
+		ForeignLanguages:       in.ForeignLanguages,
+		FavFood:                in.FavFood,
+		FavDrink:               in.FavDrink,
+		FavProgrammingLanguage: in.FavProgrammingLanguage,
+		ThinkingAbout:          in.ThinkingAbout,
+		Hobbies:                in.Hobbies,
+	}
+
+	res, err := collection.UpdateOne(
+		ctx,
+		bson.M{"_id": oid},
+		bson.M{"$set": data},
+	)
+	if err != nil {
+		return nil, status.Errorf(
+			codes.Internal,
+			"Could not update",
+		)
+	}
+
+	if res.MatchedCount == 0 {
+		return nil, status.Errorf(
+			codes.NotFound,
+			"Cannot find person with Id",
+		)
+	}
+
+	return &emptypb.Empty{}, nil
 }
