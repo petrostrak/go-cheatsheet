@@ -18,7 +18,7 @@ type Person struct {
 	Personal                    string             `bson:"personal"`
 	ForeignLanguages            []string           `bson:"foreign_languages"`
 	FavoriteFood                string             `bson:"favorite_food"`
-	FavoriteDrink               string             `bson:"favorite_food"`
+	FavoriteDrink               string             `bson:"favorite_drink"`
 	FavoriteProgrammingLanguage string             `bson:"favorite_programming_language"`
 	ThinkingAbout               []string           `bson:"thinking_about"`
 	Hobbies                     []string           `bson:"hobbies"`

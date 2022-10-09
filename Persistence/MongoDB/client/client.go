@@ -58,6 +58,7 @@ func updatePerson(c pb.PersonServiceClient, id string) {
 	log.Println("updatePerson() invoked!")
 
 	person := &pb.Person{
+		Id:                     id,
 		Kind:                   "Alien",
 		PersonsName:            "Petros Trak",
 		Origins:                "Athens, Greece",
