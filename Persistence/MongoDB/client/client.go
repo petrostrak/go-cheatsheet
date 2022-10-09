@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	pb "mongo-db/proto"
+
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func createPerson(c pb.PersonServiceClient) string {
@@ -77,4 +80,24 @@ func updatePerson(c pb.PersonServiceClient, id string) {
 	}
 
 	log.Println("Person was updated!")
+}
+
+func listPerson(c pb.PersonServiceClient) {
+	log.Println("listPerson() invoked!")
+
+	stream, err := c.ListPerson(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		log.Printf("Error while calling listPerson: %v\n", err)
+	}
+
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Printf("Error while receiving from listPerson: %v\n", err)
+		}
+
+		log.Println(res)
+	}
 }
