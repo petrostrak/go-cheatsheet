@@ -153,7 +153,7 @@ func (s *Server) DeletePerson(ctx context.Context, in *pb.PersonId) (*emptypb.Em
 	if res.DeletedCount == 0 {
 		return nil, status.Errorf(
 			codes.NotFound,
-			"Petros was not found",
+			"Person was not found",
 		)
 	}
 

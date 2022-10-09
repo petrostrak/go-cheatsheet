@@ -31,25 +31,52 @@ func connectToMongoDB() *mongo.Collection {
 }
 
 type Server struct {
-	pb.BlogServiceServer
+	pb.PersonServiceServer
 }
-
-var collection *mongo.Collection
 
 func main() {
 	collection = connectToMongoDB()
-    ...
+
+	l, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Printf("failed to listen on: %v\n", err)
+	}
+
+	log.Printf("Listening on %s...\n", addr)
+
+	s := grpc.NewServer()
+	pb.RegisterPersonServiceServer(s, &Server{})
+	reflection.Register(s)
+
+	err = s.Serve(l)
+	if err != nil {
+		log.Printf("failed to serve: %v\n", err)
+	}
 }
 ```
 
 #### CRUD operations with MongoDB and gRPC services
 Create:
 ```go
-func (s *Server) CreateBlog(ctx context.Context, in *pb.Blog) (*pb.BlogId, error) {
-	data := BlogItem{
-		AuthorId: in.AuthorId,
-		Title:    in.Title,
-		Content:  in.Content,
+func (s *Server) CreatePerson(ctx context.Context, in *pb.Person) (*pb.PersonId, error) {
+	log.Printf("CreatePerson() invoked with %v\n", in)
+
+	data := &pb.Person{
+		Id:                     in.Id,
+		Kind:                   in.Kind,
+		PersonsName:            in.PersonsName,
+		Origins:                in.Origins,
+		ProgrammingLanguages:   in.ProgrammingLanguages,
+		Tools:                  in.Tools,
+		Linkedin:               in.Linkedin,
+		Github:                 in.Github,
+		Personal:               in.Personal,
+		ForeignLanguages:       in.ForeignLanguages,
+		FavFood:                in.FavFood,
+		FavDrink:               in.FavDrink,
+		FavProgrammingLanguage: in.FavProgrammingLanguage,
+		ThinkingAbout:          in.ThinkingAbout,
+		Hobbies:                in.Hobbies,
 	}
 
 	res, err := collection.InsertOne(ctx, data)
@@ -68,12 +95,14 @@ func (s *Server) CreateBlog(ctx context.Context, in *pb.Blog) (*pb.BlogId, error
 		)
 	}
 
-	return &pb.BlogId{Id: oid.Hex()}, nil
+	return &pb.PersonId{Id: oid.Hex()}, nil
 }
 ```
 Read:
 ```go
-func (s *Server) ReadBlog(ctx context.Context, in *pb.BlogId) (*pb.Blog, error) {
+func (s *Server) ReadPerson(ctx context.Context, in *pb.PersonId) (*pb.Person, error) {
+	log.Printf("ReadPerson() invoked with %v\n", in)
+
 	oid, err := primitive.ObjectIDFromHex(in.Id)
 	if err != nil {
 		return nil, status.Errorf(
@@ -82,7 +111,7 @@ func (s *Server) ReadBlog(ctx context.Context, in *pb.BlogId) (*pb.Blog, error) 
 		)
 	}
 
-	data := &BlogItem{}
+	data := &Person{}
 	filter := bson.M{"_id": oid}
 
 	res := collection.FindOne(ctx, filter)
@@ -91,16 +120,18 @@ func (s *Server) ReadBlog(ctx context.Context, in *pb.BlogId) (*pb.Blog, error) 
 	if err != nil {
 		return nil, status.Errorf(
 			codes.NotFound,
-			fmt.Sprintf("cannot find blog with the ID provided: %v\n", err),
+			fmt.Sprintf("cannot find person with the ID provided: %v\n", err),
 		)
 	}
 
-	return documentToBlog(data), nil
+	return documentToPerson(data), nil
 }
 ```
 Update:
 ```go
-func (s *Server) UpdateBlog(ctx context.Context, in *pb.Blog) (*empty.Empty, error) {
+func (s *Server) UpdatePerson(ctx context.Context, in *pb.Person) (*emptypb.Empty, error) {
+	log.Printf("UpdatePerson() invoked with %v\n", in)
+
 	oid, err := primitive.ObjectIDFromHex(in.Id)
 	if err != nil {
 		return nil, status.Errorf(
@@ -109,10 +140,22 @@ func (s *Server) UpdateBlog(ctx context.Context, in *pb.Blog) (*empty.Empty, err
 		)
 	}
 
-	data := &BlogItem{
-		AuthorId: in.AuthorId,
-		Title:    in.Title,
-		Content:  in.Content,
+	data := &pb.Person{
+		Id:                     in.Id,
+		Kind:                   in.Kind,
+		PersonsName:            in.PersonsName,
+		Origins:                in.Origins,
+		ProgrammingLanguages:   in.ProgrammingLanguages,
+		Tools:                  in.Tools,
+		Linkedin:               in.Linkedin,
+		Github:                 in.Github,
+		Personal:               in.Personal,
+		ForeignLanguages:       in.ForeignLanguages,
+		FavFood:                in.FavFood,
+		FavDrink:               in.FavDrink,
+		FavProgrammingLanguage: in.FavProgrammingLanguage,
+		ThinkingAbout:          in.ThinkingAbout,
+		Hobbies:                in.Hobbies,
 	}
 
 	res, err := collection.UpdateOne(
@@ -130,7 +173,7 @@ func (s *Server) UpdateBlog(ctx context.Context, in *pb.Blog) (*empty.Empty, err
 	if res.MatchedCount == 0 {
 		return nil, status.Errorf(
 			codes.NotFound,
-			"Cannot find blog with Id",
+			"Cannot find person with Id",
 		)
 	}
 
@@ -139,8 +182,10 @@ func (s *Server) UpdateBlog(ctx context.Context, in *pb.Blog) (*empty.Empty, err
 ```
 Delete:
 ```go
-func (s *Server) DeleteBlog(ctx context.Context, in *pb.BlogId) (*empty.Empty, error) {
-    oid, err := primitive.ObjectIDFromHex(in.Id)
+func (s *Server) DeletePerson(ctx context.Context, in *pb.PersonId) (*emptypb.Empty, error) {
+	log.Printf("DeletePerson() invoked with %v\n", in)
+
+	oid, err := primitive.ObjectIDFromHex(in.Id)
 	if err != nil {
 		return nil, status.Errorf(
 			codes.InvalidArgument,
@@ -159,7 +204,7 @@ func (s *Server) DeleteBlog(ctx context.Context, in *pb.BlogId) (*empty.Empty, e
 	if res.DeletedCount == 0 {
 		return nil, status.Errorf(
 			codes.NotFound,
-			"Blog was not found",
+			"Person was not found",
 		)
 	}
 
@@ -168,7 +213,9 @@ func (s *Server) DeleteBlog(ctx context.Context, in *pb.BlogId) (*empty.Empty, e
 ```
 List All:
 ```go
-func (s *Server) ListBlogs(in *empty.Empty, stream pb.BlogService_ListBlogsServer) error {
+func (s *Server) ListPerson(in *emptypb.Empty, stream pb.PersonService_ListPersonServer) error {
+	log.Println("ListPerson() invoked")
+
 	cur, err := collection.Find(context.Background(), primitive.D{{}}) // empty filter
 	if err != nil {
 		return status.Errorf(
@@ -179,7 +226,7 @@ func (s *Server) ListBlogs(in *empty.Empty, stream pb.BlogService_ListBlogsServe
 	defer cur.Close(context.Background())
 
 	for cur.Next(context.Background()) {
-		data := &BlogItem{}
+		data := &Person{}
 		err := cur.Decode(data)
 		if err != nil {
 			return status.Errorf(
@@ -188,7 +235,7 @@ func (s *Server) ListBlogs(in *empty.Empty, stream pb.BlogService_ListBlogsServe
 			)
 		}
 
-		stream.Send(documentToBlog(data))
+		stream.Send(documentToPerson(data))
 	}
 
 	if err = cur.Err(); err != nil {
