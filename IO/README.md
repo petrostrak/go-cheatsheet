@@ -1,5 +1,25 @@
 ## File input and output in Golang
+### Read a file with `bufio.NewScanner`.
+```go
+	f, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("error opening %s: %s", filename, err)
+		os.Exit(1)
+	}
+	defer f.Close()
 
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if scanner.Err() != nil {
+			fmt.Printf("error reading file %s", err)
+			os.Exit(1)
+		}
+		fmt.Println(line)
+	}
+```
 ### Read and Write a file with `ioutil`.
 The technique in this section will use the ioutil.WriteFile() and ioutil.ReadFile()
 functions. Note that ioutil.ReadFile() does not implement the io.Reader interface
