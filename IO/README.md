@@ -56,6 +56,22 @@ and therefore is a little restrictive.
 
 	io.WriteString(os.Stdout, string(buf))
 ```
+### Read char-by-char from a file.
+```go
+	buf, err := ioutil.ReadFile(input)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	in := string(buf)
+	s := bufio.NewScanner(strings.NewReader(in))
+	s.Split(bufio.ScanRunes)
+
+	for s.Scan() {
+		fmt.Print(s.Text())
+	}
+```
 ### Write to a file with `fmt`.
 ```go
 destination, err := os.Create(filename)
