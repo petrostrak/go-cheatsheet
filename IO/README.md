@@ -37,6 +37,25 @@ and therefore is a little restrictive.
 		os.Exit(1)
 	}   
 ```
+### Read exact bytes from buffer with `io.ReadFull` and Write to file with `io.WriteString`.
+```go
+	f, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("error opening %s: %s", filename, err)
+		os.Exit(1)
+	}
+	defer f.Close()
+
+	buf := make([]byte, 8)
+	if _, err := io.ReadFull(f, buf); err != nil {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+			fmt.Println(err)
+		}
+	}
+
+	io.WriteString(os.Stdout, string(buf))
+```
 ### Write to a file with `fmt`.
 ```go
 destination, err := os.Create(filename)
