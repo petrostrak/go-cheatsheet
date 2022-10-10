@@ -65,5 +65,23 @@ func main() {
 		fmt.Printf("Copied %d bytes!\n", nBytes)
 	}
 }
+```
+### Write a byte slice to a file with `os`.
+```go
+    aByteSlice := []byte("text here")
+	os.WriteFile(filename, aByteSlice, 0644)
 
+	f, err := os.Open(filename)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer f.Close()
+
+	anotherByteSlice := make([]byte, 100)
+	n, err := f.Read(anotherByteSlice)
+	if err == io.EOF {
+		fmt.Println("EOF:", err)
+	}
+	fmt.Printf("Read %d bytes: %s", n, anotherByteSlice)
 ```
