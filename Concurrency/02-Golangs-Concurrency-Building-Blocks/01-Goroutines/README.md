@@ -1,0 +1,2 @@
+### Goroutines
+Goroutines are one of the most basic units of organization in a Go program. Every Go program has at least one goroutine: the `main goroutine`. Put it simply, a goroutine is a founction that is running concurrently (remember: not necessarily in parallel!) alongside ither code.
