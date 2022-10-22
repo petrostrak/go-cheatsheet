@@ -21,14 +21,14 @@ func main() {
 		// that we have exited.
 		defer wg.Done()
 		fmt.Println("1st goroutine sleeping...")
-		time.Sleep(1)
+		time.Sleep(1 * time.Second)
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		fmt.Println("2nd goroutine sleeping...")
-		time.Sleep(2)
+		time.Sleep(2 * time.Second)
 	}()
 
 	// Here we call Wait which will block the main goroutine, until all goroutines
