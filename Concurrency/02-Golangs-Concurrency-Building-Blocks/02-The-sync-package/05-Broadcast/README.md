@@ -1,0 +1,2 @@
+### Broadcast
+Internally, the runtime maintains a FIFO list of goroutines waiting to be signed; `Signal` finds the goroutine that's been waiting the longest and notifies that, whereas `Broadcast` sends a signal to all goroutines that are waiting. `Broadcast` provides a way to communicate with multiple goroutines at once.
