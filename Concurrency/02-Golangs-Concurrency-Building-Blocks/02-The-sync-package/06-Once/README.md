@@ -1,0 +1,2 @@
+### Once
+As the name implies, `sync.Once` is a type that utilizes some sync primitives internally to ensure that only one call to `Do` ever calls the function passed in - even on different goroutines. This is indeed because we wrap the call to `increment` in a `sync.Once Do` method.
