@@ -1,0 +1,2 @@
+### Channels
+Channels are one of the synchronization primitives in Go derived from Hoare's CSP. While they can be used to synchronize access of the memory, they are best used to communicate information between goroutines.
