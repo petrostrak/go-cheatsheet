@@ -427,6 +427,72 @@ func Test_app_auth(t *testing.T) {
 ```
 
 ### DB Integration Tests - The Repository Pattern
+* Define an interface type for our repository
+```go
+type DatabaseRepo interface {
+	Connection() *sql.DB
+	AllUsers() ([]*data.User, error)
+	GetUser(id int) (*data.User, error)
+	GetUserByEmail(email string) (*data.User, error)
+	UpdateUser(u data.User) error
+	DeleteUser(id int) error
+	InsertUser(user data.User) (int, error)
+	ResetPassword(id int, password string) error
+	InsertUserImage(i data.UserImage) (int, error)
+}
+```
+* Moving our database functions into a repository
+* Updating application config to use the database repository
+```go
+type application struct {
+	DSN     string
+	DB      repository.DatabaseRepo
+	Session *scs.SessionManager
+}
+
+func main() {
+	gob.Register(data.User{})
+
+	// set up an app config
+	app := application{}
+
+	flag.StringVar(&app.DSN, "dsn", "host=localhost port=5432 user=postgres password=postgres dbname=users sslmode=disable timezone=UTC connect_timeout=5", "Posgtres connection")
+	flag.Parse()
+
+	conn, err := app.connectToDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	app.DB = &dbrepo.PostgresDBRepo{DB: conn}
+
+	// get a session manager
+	app.Session = getSession()
+
+	// print out a message
+	log.Println("Starting server on port 8080...")
+
+	// start the server
+	err = http.ListenAndServe(":8080", app.routes())
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+* Update TestMain to use the test repository
+```go
+var app application
+
+func TestMain(m *testing.M) {
+	pathToTemplates = "./../../templates/"
+
+	app.Session = getSession()
+	app.DB = &dbrepo.TestDBRepo{}
+
+	os.Exit(m.Run())
+}
+```
 
 ### Testing File Uploads
 
