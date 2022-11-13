@@ -301,6 +301,130 @@ func TestApp_renderWithBadTemplate(t *testing.T) {
 ```
 
 ### Testing POST Handlers
+* Add DB connection to TestMain
+```go
+func TestMain(m *testing.M) {
+	pathToTemplates = "./../../templates/"
+	
+	app.Session = getSession()
+	app.DSN = "host=localhost port=5432 user=postgres password=postgres dbname=users sslmode=disable timezone=UTC connect_timeout=5"
+
+	conn, err := app.connectToDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	app.DB = db.PostgresConn{DB: conn}
+
+	os.Exit(m.Run())
+}
+```
+* Table test for the login handler
+```go
+func Test_app_Login(t *testing.T) {
+	var tests = []struct{
+		name string
+		postedData url.Values
+		expectedStatusCode int
+		expectedLoc string
+	}{
+		{
+			name: "valid login",
+			postedData: url.Values{
+				"email": {"admin@example.com"},
+				"password": {"secret"},
+			},
+			expectedStatusCode: http.StatusSeeOther,
+			expectedLoc: "/user/profile",
+		},
+		{
+			name: "missing form data",
+			postedData: url.Values{
+				"email": {""},
+				"password": {""},
+			},
+			expectedStatusCode: http.StatusSeeOther,
+			expectedLoc: "/",
+		},
+		{
+			name: "user not found",
+			postedData: url.Values{
+				"email": {"you@there.com"},
+				"password": {"password"},
+			},
+			expectedStatusCode: http.StatusSeeOther,
+			expectedLoc: "/",
+		},
+		{
+			name: "bad credentials",
+			postedData: url.Values{
+				"email": {"admin@example.com"},
+				"password": {"password"},
+			},
+			expectedStatusCode: http.StatusSeeOther,
+			expectedLoc: "/",
+		},
+	}
+
+	for _, e := range tests {
+		req, _ := http.NewRequest("POST", "/login", strings.NewReader(e.postedData.Encode()))
+		req = addContextAndSessionToRequest(req, app)
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+		handler := http.HandlerFunc(app.Login)
+		handler.ServeHTTP(rr, req)
+
+		if rr.Code != e.expectedStatusCode {
+			t.Errorf("%s: returned wrong status code; expected %d, but got %d", e.name, e.expectedStatusCode, rr.Code)
+		}
+
+		actualLoc, err := rr.Result().Location()
+		if err == nil {
+			if actualLoc.String() != e.expectedLoc {
+				t.Errorf("%s: expected location %s but got %s", e.name, e.expectedLoc, actualLoc.String())
+			}
+		} else {
+			t.Errorf("%s: no location header set", e.name)
+		}
+	}
+}
+```
+* Test for authentication middleware
+```go
+func Test_app_auth(t *testing.T) {
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+
+	})
+
+	var tests = []struct{
+		name string
+		isAuth bool
+	}{
+		{"logged in", true},
+		{"not logged in", false},
+	}
+
+	for _, e := range tests {
+		handlerToTest := app.auth(nextHandler)
+		req := httptest.NewRequest("GET", "http://testing", nil)
+		req = addContextAndSessionToRequest(req, app)
+		if e.isAuth {
+			app.Session.Put(req.Context(), "user", data.User{ID: 1})
+		}
+		rr := httptest.NewRecorder()
+		handlerToTest.ServeHTTP(rr, req)
+
+		if e.isAuth && rr.Code != http.StatusOK {
+			t.Errorf("%s: expected status code of 200 but got %d", e.name, rr.Code)
+		}
+
+		if !e.isAuth && rr.Code != http.StatusTemporaryRedirect {
+			t.Errorf("%s: expected status code 307, but got %d", e.name, rr.Code)
+		}
+	}
+}
+```
 
 ### DB Integration Tests - The Repository Pattern
 
